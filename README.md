@@ -1,3 +1,6 @@
+# Fork project from Mitch Tabian
+Try to demonstrate connection BLE and binding the service using MVVM.
+
 # Bound-Services-with-MVVM
 A simple example of how to bind a service while using MVVM
 
