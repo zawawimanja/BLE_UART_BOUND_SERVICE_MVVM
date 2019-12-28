@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -41,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
     private static final int STATE_OFF = 10;
-
+    private Handler mHandler;
     TextView mRemoteRssiVal;
     RadioGroup mRg;
     private int mState = UART_PROFILE_DISCONNECTED;
-    private MyService mService = null;
+    private MyService mService ;
     private BluetoothDevice mDevice = null;
     private BluetoothAdapter mBtAdapter = null;
     private ListView messageListView;
@@ -55,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
 
     // UI Components
     private ProgressBar mProgressBar;
-    private TextView mTextView;
+    private TextView mTextView,mTextView1;
     private Button mButton;
-
+    String deviceAddress;
 
     // Vars
 //    private MyService mService;
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.progresss_bar);
         mTextView = findViewById(R.id.text_view);
         mButton = findViewById(R.id.toggle_updates);
-
+        mTextView1 = findViewById(R.id.text_view1);
 
 
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         btnSend=(Button) findViewById(R.id.sendButton);
         edtMessage = (EditText) findViewById(R.id.sendText);
         service_init();
+            showMessage("oncreate");
 
 
 
@@ -101,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
                 }
                 else {
+
+
                     if (btnConnectDisconnect.getText().equals("Connect")){
 
                         //Connect button pressed, open DeviceListActivity class, with popup windows that scan for devices
@@ -115,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                     }
+
                 }
             }
         });
@@ -147,19 +152,41 @@ public class MainActivity extends AppCompatActivity {
         mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
         setObservers();
 
+
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                toggleUpdates();
+                toggleUpdates1();
             }
         });
+
+//        Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            public void run() {
+//                toggleUpdates1();
+//            }
+//        }, 1000);
+//
+//
+//        //
+//
+//        new CountDownTimer(5000, 100) {
+//            public void onTick(long millisUntilFinished) {
+//
+//            }
+//
+//            public void onFinish() {
+//
+//            }
+//        }.start();
+
     }
 
     //UART service connected/disconnected
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder rawBinder) {
             mService = ((MyService.MyBinder) rawBinder).getService();
-            Log.d(TAG, "onServiceConnected mService= " + mService);
+            Log.i(TAG, "onServiceConnected mService= " + mService);
             if (!mService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
                 finish();
@@ -173,11 +200,13 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void toggleUpdates(){
+    public void toggleUpdates(){
+
         if(mService != null){
             if(mService.getProgress() == mService.getMaxValue()){
                 mService.resetTask();
                 mButton.setText("Start");
+
             }
             else{
                 if(mService.getIsPaused()){
@@ -191,7 +220,35 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+
+
+
     }
+
+
+
+    private void toggleUpdates1(){
+        if(mService != null){
+
+            if(mService.getRXValue()!=null){
+
+                mViewModel.setRX(true);
+            }
+
+            else{
+
+
+                mViewModel.setRX(false);
+            }
+
+
+
+        }
+
+    }
+
+
+
 
     private void setObservers(){
         mViewModel.getBinder().observe(this, new Observer<MyService.MyBinder>() {
@@ -223,7 +280,51 @@ public class MainActivity extends AppCompatActivity {
                                 mProgressBar.setMax(mService.getMaxValue());
                                 String progress =
                                         String.valueOf(100 * mService.getProgress() / mService.getMaxValue()) + "%";
+                                Log.i(TAG, "ProgressMain"+progress);
                                 mTextView.setText(progress);
+                            }
+                            handler.postDelayed(this, 100);
+                        }
+                        else{
+                            handler.removeCallbacks(this);
+                        }
+                    }
+                };
+
+                // control what the button shows
+                if(aBoolean){
+                    mButton.setText("Pause");
+                    handler.postDelayed(runnable, 100);
+
+                }
+                else{
+                    if(mService.getProgress() == mService.getMaxValue()){
+                        mButton.setText("Restart");
+                    }
+                    else{
+                        mButton.setText("Start");
+                    }
+                }
+            }
+        });
+
+        mViewModel.getRX().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable final Boolean aBoolean) {
+                final Handler handler = new Handler();
+                final Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mViewModel.getRX().getValue()){
+                            if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
+
+                                if(mService.getRXValue()==null){
+                                    mViewModel.setRX(false);
+                                }
+
+                                String progress = mService.getRXValue();
+                                Log.i(TAG, "ProgressRX"+progress);
+                                mTextView1.setText(progress);
                             }
                             handler.postDelayed(this, 100);
                         }
@@ -261,7 +362,6 @@ public class MainActivity extends AppCompatActivity {
         startService();
     }
 
-
     @Override
     protected void onStop() {
         super.onStop();
@@ -291,6 +391,8 @@ public class MainActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, makeGattUpdateIntentFilter());
     }
+
+    ////////////////////// all 3 method for onresume
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
@@ -350,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
             if (action.equals(MyService.ACTION_GATT_SERVICES_DISCOVERED)) {
                 mService.enableTXNotification();
             }
-            //*********************//
+            //*********************//rx
             if (action.equals(MyService.ACTION_DATA_AVAILABLE)) {
 
                 final byte[] txValue = intent.getByteArrayExtra(MyService.EXTRA_DATA);
@@ -383,13 +485,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
     public void go(View view){
 
 
         Intent dash = new Intent(getApplicationContext(), Main2Activity.class);
         startActivity(dash);
+//        mTextView1.setText(mService.getRXValue());
+//        Log.i(TAG, "RXVALUE"+mService.getRXValue());
     }
 
     @Override
@@ -399,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_SELECT_DEVICE:
                 //When the DeviceListActivity return, with the selected device address
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                     deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
                     mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
 
                     Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "mserviceValue" + mService);
