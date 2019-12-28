@@ -33,7 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class Main2Activity extends AppCompatActivity {
+public class Main3Activity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int REQUEST_SELECT_DEVICE = 1;
@@ -268,9 +268,9 @@ public class Main2Activity extends AppCompatActivity {
                                 }
 
                                 String progress = mService.getRXValue();
-                                if(progress.equals("X")){
+                                if(progress.equals("Y")){
                                     Log.i(TAG, "ProgressRX"+progress);
-                                    mTextView1.setText("a");
+                                    mTextView1.setText("B");
                                 }else{
                                     mTextView1.setText(" ");
                                 }

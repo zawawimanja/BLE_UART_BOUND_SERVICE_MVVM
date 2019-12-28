@@ -20,17 +20,17 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 public class MyService extends Service {
 
-
-
     private final IBinder mBinder = new MyBinder();
     private Handler mHandler;
     private int mProgress, mMaxValue;
-    private Boolean mIsPaused;
+    private Boolean mIsPaused,mConnection;
     private final static String TAG = MyService.class.getSimpleName();
 
     private BluetoothManager mBluetoothManager;
@@ -64,15 +64,15 @@ public class MyService extends Service {
     public static final UUID RX_SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
     public static final UUID RX_CHAR_UUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     public static final UUID TX_CHAR_UUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
-
-
+    BluetoothGattCharacteristic characteristic;
+    String text;
     @Override
     public void onCreate() {
         super.onCreate();
         mHandler = new Handler();
         mProgress = 0;
         mIsPaused = true;
-        mMaxValue = 5000;
+        mMaxValue = 10000;
     }
 
     @Nullable
@@ -94,6 +94,10 @@ public class MyService extends Service {
         return mIsPaused;
     }
 
+    public Boolean getIsConnectedService() {
+        return mConnection;
+    }
+
     public int getProgress(){
         return mProgress;
     }
@@ -107,7 +111,9 @@ public class MyService extends Service {
     }
 
     public void unPausePretendLongRunningTask(){
+
         mIsPaused = false;
+        Log.i(TAG, "mIsPaused"+mIsPaused);
         startPretendLongRunningTask();
     }
 
@@ -171,6 +177,7 @@ public class MyService extends Service {
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
+                mConnection=false;
                 Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
             }
@@ -217,10 +224,32 @@ public class MyService extends Service {
 
            // Log.d(TAG, String.format("Received TX: %d",characteristic.getValue() ));
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
+
+            try {
+                 text = new String(characteristic.getValue(), "UTF-8");
+
+                Log.i(TAG,text);
+                getRXValue();
+
+
+
+            } catch (Exception e) {
+                Log.e(TAG, e.toString());
+            }
+
         } else {
 
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+
+    //pass rx value
+    public String getRXValue(){
+
+        Log.i(TAG,text);
+        return text;
+
     }
 
 
