@@ -1,4 +1,4 @@
-package com.codingwithmitch.boundserviceexample1;
+package com.codingwithmitch.boundserviceexample1.view;
 
 import android.app.Activity;
 import android.arch.lifecycle.Observer;
@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -29,9 +28,15 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.codingwithmitch.boundserviceexample1.service.MyService;
+import com.codingwithmitch.boundserviceexample1.R;
+import com.codingwithmitch.boundserviceexample1.viewmodel.MainActivityViewModel;
+
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.util.Date;
+
+import static com.codingwithmitch.boundserviceexample1.service.MyService.ACTION_GATT_CONNECTED;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -89,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         btnSend=(Button) findViewById(R.id.sendButton);
         edtMessage = (EditText) findViewById(R.id.sendText);
         service_init();
-            showMessage("oncreate");
+
 
 
 
@@ -159,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                 toggleUpdates1();
             }
         });
-
+//
 //        Handler handler = new Handler();
 //        handler.postDelayed(new Runnable() {
 //            public void run() {
@@ -200,30 +205,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public void toggleUpdates(){
-
-        if(mService != null){
-            if(mService.getProgress() == mService.getMaxValue()){
-                mService.resetTask();
-                mButton.setText("Start");
-
-            }
-            else{
-                if(mService.getIsPaused()){
-                    mService.unPausePretendLongRunningTask();
-                    mViewModel.setIsProgressBarUpdating(true);
-                }
-                else{
-                    mService.pausePretendLongRunningTask();
-                    mViewModel.setIsProgressBarUpdating(false);
-                }
-            }
-
-        }
-
-
-
-    }
 
 
 
@@ -232,16 +213,19 @@ public class MainActivity extends AppCompatActivity {
 
             if(mService.getRXValue()!=null){
 
+                Log.i(TAG,"VALUE"+mService.getConnectionService());
+                if(mService.getConnectionService().equals(ACTION_GATT_CONNECTED)){
+
+                    mViewModel.setConnection(true);
+                }
+
                 mViewModel.setRX(true);
             }
 
             else{
 
-
                 mViewModel.setRX(false);
             }
-
-
 
         }
 
@@ -255,10 +239,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(@Nullable MyService.MyBinder myBinder) {
                 if(myBinder == null){
-                    Log.d(TAG, "onChanged: unbound from service");
+                    Log.i(TAG, "onChanged: unbound from service");
                 }
                 else{
-                    Log.d(TAG, "onChanged: bound to service.");
+                    Log.i(TAG, "onChanged: bound to service.");
                     mService = myBinder.getService();
                 }
             }
@@ -311,6 +295,8 @@ public class MainActivity extends AppCompatActivity {
         mViewModel.getRX().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(@Nullable final Boolean aBoolean) {
+
+
                 final Handler handler = new Handler();
                 final Runnable runnable = new Runnable() {
                     @Override
@@ -326,7 +312,8 @@ public class MainActivity extends AppCompatActivity {
                                 Log.i(TAG, "ProgressRX"+progress);
                                 mTextView1.setText(progress);
                             }
-                            handler.postDelayed(this, 100);
+                           handler.postDelayed(this, 100);
+
                         }
                         else{
                             handler.removeCallbacks(this);
@@ -335,6 +322,53 @@ public class MainActivity extends AppCompatActivity {
                 };
 
                 // control what the button shows
+                if(aBoolean){
+                    mButton.setText("Pause");
+                    handler.postDelayed(runnable, 100);
+
+                }
+                else{
+                    if(mService.getProgress() == mService.getMaxValue()){
+                        mButton.setText("Restart");
+                    }
+                    else{
+                        mButton.setText("Start");
+                    }
+                }
+            }
+        });
+
+        mViewModel.getConnection().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable final Boolean aBoolean) {
+                final Handler handler = new Handler();
+                final Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if(mViewModel.getConnection().getValue()){
+                            if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
+
+                                if(mService.getConnectionService()==null){
+                                    mViewModel.setConnection(false);
+                                }
+
+                                String progress = mService.getConnectionService();
+                                Log.i(TAG, "ConnectionState"+progress);
+
+
+                                showMessage(progress);
+
+
+                            }
+                            handler.postDelayed(this, 100);
+                        }
+                        else{
+                            handler.removeCallbacks(this);
+                        }
+                    }
+                };
+
+               //  control what the button shows
                 if(aBoolean){
                     mButton.setText("Pause");
                     handler.postDelayed(runnable, 100);
@@ -396,7 +430,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(MyService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(ACTION_GATT_CONNECTED);
         intentFilter.addAction(MyService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(MyService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(MyService.ACTION_DATA_AVAILABLE);
@@ -412,7 +446,7 @@ public class MainActivity extends AppCompatActivity {
 
             final Intent mIntent = intent;
             //*********************//
-            if (action.equals(MyService.ACTION_GATT_CONNECTED)) {
+            if (action.equals(ACTION_GATT_CONNECTED)) {
                 runOnUiThread(new Runnable() {
                     public void run() {
                         String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
@@ -488,11 +522,12 @@ public class MainActivity extends AppCompatActivity {
     public void go(View view){
 
 
-        Intent dash = new Intent(getApplicationContext(), Main2Activity.class);
+        Intent dash = new Intent(getApplicationContext(), TestActivity.class);
         startActivity(dash);
-//        mTextView1.setText(mService.getRXValue());
-//        Log.i(TAG, "RXVALUE"+mService.getRXValue());
+
     }
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -529,6 +564,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+        // super.onBackPressed();
+    }
 
 
 

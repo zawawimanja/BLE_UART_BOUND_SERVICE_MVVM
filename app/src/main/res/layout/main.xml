@@ -5,6 +5,7 @@
     android:orientation="vertical" >
 
     <LinearLayout
+        android:gravity="center"
         android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,13 +18,7 @@
             android:padding="12dp"
             android:text="Connect" />
 
-        <Button
-            android:onClick="go"
-            android:id="@+id/btn_select1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:text="Next" />
+
 
 
 
@@ -59,6 +54,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
+
+        <Button
+            android:onClick="go"
+            android:id="@+id/btn_select2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="2" />
+
+        <Button
+            android:onClick="go3"
+            android:id="@+id/btn_select3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="3" />
+
+        <Button
+            android:onClick="go4"
+            android:id="@+id/btn_select4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="4" />
 
 
         <TextView

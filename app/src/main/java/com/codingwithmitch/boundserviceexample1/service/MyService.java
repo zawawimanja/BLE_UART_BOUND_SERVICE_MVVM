@@ -1,4 +1,4 @@
-package com.codingwithmitch.boundserviceexample1;
+package com.codingwithmitch.boundserviceexample1.service;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -14,14 +14,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -84,7 +81,7 @@ public class MyService extends Service {
 
     public class MyBinder extends Binder{
 
-        MyService getService(){
+        public MyService getService(){
             return MyService.this;
         }
 
@@ -156,17 +153,18 @@ public class MyService extends Service {
     //////////////////////////////////////////////////////////////////
     //starting service ble
 
-
+     String intentAction;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            String intentAction;
+
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED;
+                getConnectionService();
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
@@ -176,6 +174,7 @@ public class MyService extends Service {
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
+                getConnectionService();
                 mConnectionState = STATE_DISCONNECTED;
                 mConnection=false;
                 Log.i(TAG, "Disconnected from GATT server.");
@@ -209,6 +208,16 @@ public class MyService extends Service {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
     };
+
+
+    //pass rx value
+    public String getConnectionService(){
+
+        Log.i(TAG,"valueintent"+intentAction);
+        return intentAction;
+
+    }
+
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
