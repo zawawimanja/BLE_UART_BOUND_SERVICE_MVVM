@@ -13,10 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Main4Activity"></activity>
-        <activity android:name=".Main3Activity" />
-        <activity android:name=".Main2Activity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".view.TestActivity"></activity>
+        <activity android:name=".view.Main4Activity" />
+        <activity android:name=".view.Main3Activity" />
+        <activity android:name=".view.Main2Activity" />
+        <activity android:name=".view.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,11 +25,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DeviceListActivity"
+            android:name=".view.DeviceListActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Dialog" />
 
-        <service android:name=".MyService" />
+        <service android:name=".service.MyService" />
     </application>
 
 </manifest>

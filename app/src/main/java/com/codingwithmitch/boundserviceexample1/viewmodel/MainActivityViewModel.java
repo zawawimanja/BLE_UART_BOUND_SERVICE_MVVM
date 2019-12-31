@@ -1,24 +1,27 @@
-package com.codingwithmitch.boundserviceexample1;
+package com.codingwithmitch.boundserviceexample1.viewmodel;
 
+import android.app.Application;
+import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
 import android.content.ComponentName;
-import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-public class MainActivityViewModel extends ViewModel {
-    Intent intent;
+import com.codingwithmitch.boundserviceexample1.service.MyService;
+
+public class MainActivityViewModel extends AndroidViewModel {
+
     private static final String TAG = "MainActivityViewModel";
 
     private MutableLiveData<Boolean> mIsProgressBarUpdating = new MutableLiveData<>();
     private MutableLiveData<MyService.MyBinder> mBinder = new MutableLiveData<>();
     private MutableLiveData<Boolean> mRX = new MutableLiveData<>();
+    private MutableLiveData<Boolean> mConnection = new MutableLiveData<>();
 
-    private MutableLiveData<Boolean>mIsConnected = new MutableLiveData<>();
+    private MutableLiveData<String> mRXData = new MutableLiveData<>();
 
     // Keeping this in here because it doesn't require a context
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -51,11 +54,18 @@ public class MainActivityViewModel extends ViewModel {
         return mIsProgressBarUpdating;
     }
 
+    public MainActivityViewModel(@NonNull final Application application) {
+        super(application);
 
-    public LiveData<Boolean> getIsConnected(){
-        Log.i(TAG, "Get connection");
-        return mIsConnected;
+
     }
+
+
+    public void setIsProgressBarUpdating(boolean isUpdating){
+        mIsProgressBarUpdating.postValue(isUpdating);
+    }
+
+
 
     public LiveData<Boolean> getRX(){
         Log.i(TAG, "Get RX");
@@ -70,15 +80,20 @@ public class MainActivityViewModel extends ViewModel {
     }
 
 
-    public void setIsConnected(boolean isConnected){
+    public LiveData<Boolean> getConnection(){
+        Log.i(TAG, "Get RX");
+        return mConnection;
+    }
+
+
+    public void setConnection(boolean text){
         Log.i(TAG, "CheckConnection");
-        mIsConnected.postValue(isConnected);
+
+        mConnection.postValue(text);
     }
 
 
-    public void setIsProgressBarUpdating(boolean isUpdating){
-        mIsProgressBarUpdating.postValue(isUpdating);
-    }
+
 
 
 

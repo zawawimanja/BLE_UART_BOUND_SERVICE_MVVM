@@ -1,21 +1,16 @@
-package com.codingwithmitch.boundserviceexample1;
+package com.codingwithmitch.boundserviceexample1.view;
 
-import android.app.Activity;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,11 +24,15 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.codingwithmitch.boundserviceexample1.service.MyService;
+import com.codingwithmitch.boundserviceexample1.R;
+import com.codingwithmitch.boundserviceexample1.viewmodel.MainActivityViewModel;
+
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class Main4Activity extends AppCompatActivity {
+public class Main2Activity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int REQUEST_SELECT_DEVICE = 1;
@@ -128,29 +127,29 @@ public class Main4Activity extends AppCompatActivity {
         });
 
 
+//        Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            public void run() {
+//                toggleUpdates1();
+//            }
+//        }, 1000);
+//
+//
+//        //
+//
+//        new CountDownTimer(5000, 100) {
+//            public void onTick(long millisUntilFinished) {
+//
+//            }
+//
+//            public void onFinish() {
+//
+//            }
+//        }.start();
+//
 
     }
 
-    private void toggleUpdates(){
-        if(mService != null){
-            if(mService.getProgress() == mService.getMaxValue()){
-                mService.resetTask();
-                mButton.setText("Start");
-
-            }
-            else{
-                if(mService.getIsPaused()){
-                    mService.unPausePretendLongRunningTask();
-                    mViewModel.setIsProgressBarUpdating(true);
-                }
-                else{
-                    mService.pausePretendLongRunningTask();
-                    mViewModel.setIsProgressBarUpdating(false);
-                }
-            }
-
-        }
-    }
 
 
 
@@ -160,7 +159,8 @@ public class Main4Activity extends AppCompatActivity {
 
             if(mService.getRXValue()!=null){
 
-                mViewModel.setRX(true);
+               // mViewModel.setRXData(mService.getRXValue());
+               mViewModel.setRX(true);
             }
 
             else{
@@ -204,7 +204,7 @@ public class Main4Activity extends AppCompatActivity {
                 }
                 else{
                     Log.d(TAG, "onChanged: bound to service.");
-                    mService = myBinder.getService();
+                    mService = (MyService) myBinder.getService();
                 }
             }
         });
@@ -268,12 +268,13 @@ public class Main4Activity extends AppCompatActivity {
                                 }
 
                                 String progress = mService.getRXValue();
-                                if(progress.equals("Z")){
-                                    Log.i(TAG, "ProgressRX"+progress);
-                                    mTextView1.setText("C");
-                                }else{
-                                    mTextView1.setText(" ");
-                                }
+//                                if(progress.equals("X")){
+//                                    Log.i(TAG, "ProgressRX"+progress);
+//                                    mTextView1.setText("a");
+//                                }else{
+//                                    mTextView1.setText(" ");
+//                                }
+                                mTextView1.setText(progress);
 
                             }
                             handler.postDelayed(this, 100);
@@ -301,6 +302,39 @@ public class Main4Activity extends AppCompatActivity {
             }
         });
 
+
+
+//        mViewModel.getRXData().observe(this, new Observer<String>() {
+//            @Override
+//            public void onChanged(@Nullable final String s) {
+//
+//
+//
+//                final Handler handler = new Handler();
+//                final Runnable runnable = new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
+//
+//
+//
+//                            String progress = mService.getRXValue();
+//
+//                            mTextView1.setText(s);
+//
+//
+//                        }
+//                        handler.postDelayed(this, 100);
+//                    }
+//                };
+//
+//
+//
+//
+//
+//
+//            }
+//        });
 
 
     }
@@ -359,16 +393,6 @@ public class Main4Activity extends AppCompatActivity {
 //        mTextView1.setText(mService.getRXValue());
 //        Log.i(TAG, "RXVALUE"+mService.getRXValue());
     }
-
-    @Override
-    public void onBackPressed() {
-
-
-        super.onBackPressed();
-    }
-
-
-
 
 
 }

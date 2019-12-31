@@ -20,10 +20,13 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.codingwithmitch.boundserviceexample1;
+package com.codingwithmitch.boundserviceexample1.view;
 
 import android.Manifest;
 import android.app.Activity;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -35,6 +38,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -53,6 +57,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.codingwithmitch.boundserviceexample1.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,7 +79,7 @@ public class DeviceListActivity extends Activity {
     private Handler mHandler;
     private boolean mScanning;
 
-
+  
     private static final int ACCESS_FINE_LOCATION_PERMISSION = 85;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +92,7 @@ public class DeviceListActivity extends Activity {
         layoutParams.gravity= Gravity.TOP;
         layoutParams.y = 200;
         mHandler = new Handler();
+
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -124,6 +130,17 @@ public class DeviceListActivity extends Activity {
             	else finish();
             }
         });
+
+
+//        mViewModel = ViewModelProviders.of(this).get(DeviceListActivityViewModel.class);
+//        //set observer
+//        mViewModel.getDeviceList().observe((LifecycleOwner) this, new Observer<List<DeviceListActivity>>() {
+//            @Override
+//            public void onChanged(@Nullable List<DeviceListActivity> deviceListActivities) {
+//
+//            }
+//        });
+
 
     }
 
@@ -324,6 +341,8 @@ public class DeviceListActivity extends Activity {
             return vg;
         }
     }
+
+
     private void showMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }

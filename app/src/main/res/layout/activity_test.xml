@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.TestActivity">
+
+    <LinearLayout
+        android:id="@+id/linearLayout13"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:onClick="go2"
+            android:id="@+id/btn_select2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="2" />
+
+        <Button
+            android:onClick="go3"
+            android:id="@+id/btn_select3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="3" />
+
+        <Button
+            android:onClick="go4"
+            android:id="@+id/btn_select4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="4" />
+
+
+        <TextView
+
+            android:id="@+id/text_view1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/progresss_bar"
+            android:layout_centerHorizontal="true"
+            android:padding="12dp"
+            android:text=""
+            android:textColor="#000"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+</LinearLayout>
