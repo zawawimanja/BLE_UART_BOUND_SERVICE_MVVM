@@ -87,13 +87,6 @@ public class MyService extends Service {
 
     }
 
-    public Boolean getIsPaused(){
-        return mIsPaused;
-    }
-
-    public Boolean getIsConnectedService() {
-        return mConnection;
-    }
 
     public int getProgress(){
         return mProgress;
@@ -101,40 +94,6 @@ public class MyService extends Service {
 
     public int getMaxValue(){
         return mMaxValue;
-    }
-
-    public void pausePretendLongRunningTask(){
-        mIsPaused = true;
-    }
-
-    public void unPausePretendLongRunningTask(){
-
-        mIsPaused = false;
-        Log.i(TAG, "mIsPaused"+mIsPaused);
-        startPretendLongRunningTask();
-    }
-
-    public void startPretendLongRunningTask(){
-        final Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                if(mProgress >= mMaxValue || mIsPaused){
-                    Log.i(TAG, "run: removing callbacks");
-                    mHandler.removeCallbacks(this); // remove callbacks from runnable
-                    pausePretendLongRunningTask();
-                }
-                else{
-                    Log.i(TAG, "run: progress: " + mProgress);
-                    mProgress += 100; // increment the progress
-                    mHandler.postDelayed(this, 100); // continue incrementing
-                }
-            }
-        };
-        mHandler.postDelayed(runnable, 100);
-    }
-
-    public void resetTask(){
-        mProgress = 0;
     }
 
     @Override
@@ -185,11 +144,11 @@ public class MyService extends Service {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-            	Log.w(TAG, "mBluetoothGatt = " + mBluetoothGatt );
+            	Log.i(TAG, "mBluetoothGatt = " + mBluetoothGatt );
 
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
-                Log.w(TAG, "onServicesDiscovered received: " + status);
+                Log.i(TAG, "onServicesDiscovered received: " + status);
             }
         }
 
@@ -198,6 +157,8 @@ public class MyService extends Service {
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+
+
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             }
         }
@@ -219,6 +180,15 @@ public class MyService extends Service {
     }
 
 
+    //pass rx value
+    public String getName(){
+
+
+        return "awi";
+
+    }
+
+
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
@@ -234,13 +204,14 @@ public class MyService extends Service {
            // Log.d(TAG, String.format("Received TX: %d",characteristic.getValue() ));
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
 
+
             try {
+
+
                  text = new String(characteristic.getValue(), "UTF-8");
 
-                Log.i(TAG,text);
+                Log.i(TAG,"RXService"+text);
                 getRXValue();
-
-
 
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
@@ -256,10 +227,18 @@ public class MyService extends Service {
     //pass rx value
     public String getRXValue(){
 
-        Log.i(TAG,text);
-        return text;
+        Log.i(TAG,"RXService1 "+text);
+        if(text!=null){
+            return text;
+        }else
+        {
+
+            return "awi";
+        }
+
 
     }
+
 
 
 

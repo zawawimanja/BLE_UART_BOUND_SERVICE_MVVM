@@ -132,14 +132,6 @@ public class DeviceListActivity extends Activity {
         });
 
 
-//        mViewModel = ViewModelProviders.of(this).get(DeviceListActivityViewModel.class);
-//        //set observer
-//        mViewModel.getDeviceList().observe((LifecycleOwner) this, new Observer<List<DeviceListActivity>>() {
-//            @Override
-//            public void onChanged(@Nullable List<DeviceListActivity> deviceListActivities) {
-//
-//            }
-//        });
 
 
     }
