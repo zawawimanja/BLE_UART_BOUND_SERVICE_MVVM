@@ -25,10 +25,7 @@ import android.widget.Toast;
 
 import com.codingwithmitch.boundserviceexample1.R;
 import com.codingwithmitch.boundserviceexample1.service.MyService;
-import com.codingwithmitch.boundserviceexample1.view.Main2Activity;
-import com.codingwithmitch.boundserviceexample1.view.Main3Activity;
-import com.codingwithmitch.boundserviceexample1.view.Main4Activity;
-import com.codingwithmitch.boundserviceexample1.view.MainActivity;
+
 import com.codingwithmitch.boundserviceexample1.viewmodel.MainActivityViewModel;
 
 public class TestActivity extends AppCompatActivity {
@@ -73,19 +70,11 @@ public class TestActivity extends AppCompatActivity {
         mButton = findViewById(R.id.toggle_updates);
         mTextView1 = findViewById(R.id.text_view1);
 
-
-
-
-
         btnConnectDisconnect=(Button) findViewById(R.id.btn_select);
         btnSend=(Button) findViewById(R.id.sendButton);
         edtMessage = (EditText) findViewById(R.id.sendText);
         service_init();
         //toggleUpdates();
-
-
-
-
 
         mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
         setObservers();
@@ -187,22 +176,22 @@ public class TestActivity extends AppCompatActivity {
         startActivity(dash);
 
     }
-
-    public void go3(View view){
-
-
-        Intent dash = new Intent(getApplicationContext(), Main3Activity.class);
-        startActivity(dash);
-
-    }
-
-    public void go4(View view){
-
-
-        Intent dash = new Intent(getApplicationContext(), Main4Activity.class);
-        startActivity(dash);
-
-    }
+//
+//    public void go3(View view){
+//
+//
+//        Intent dash = new Intent(getApplicationContext(), Main3Activity.class);
+//        startActivity(dash);
+//
+//    }
+//
+//    public void go4(View view){
+//
+//
+//        Intent dash = new Intent(getApplicationContext(), Main4Activity.class);
+//        startActivity(dash);
+//
+//    }
 
 
 
