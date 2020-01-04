@@ -1,27 +1,52 @@
 package com.codingwithmitch.boundserviceexample1.viewmodel;
 
-import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
+import android.arch.lifecycle.ViewModel;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.codingwithmitch.boundserviceexample1.service.MyService;
 
-public class MainActivityViewModel extends AndroidViewModel {
+import static com.codingwithmitch.boundserviceexample1.service.MyService.ACTION_GATT_CONNECTED;
+import static com.codingwithmitch.boundserviceexample1.service.MyService.ACTION_GATT_DISCONNECTED;
+import static com.codingwithmitch.boundserviceexample1.service.MyService.ACTION_GATT_SERVICES_DISCOVERED;
+
+public class MainActivityViewModel extends ViewModel {
 
     private static final String TAG = "MainActivityViewModel";
+    private MutableLiveData<String> scoreTeamA;
+    private MutableLiveData<Integer> scoreTeamB;
+    private MutableLiveData<String> gameTitle;
+    private MutableLiveData<String> teamAName;
+    private MutableLiveData<String> teamBName;
+    private LiveData<String> scoreStringTeamA;
+    private LiveData<String> scoreStringTeamB;
 
-    private MutableLiveData<Boolean> mIsProgressBarUpdating = new MutableLiveData<>();
+
     private MutableLiveData<MyService.MyBinder> mBinder = new MutableLiveData<>();
     private MutableLiveData<Boolean> mRX = new MutableLiveData<>();
     private MutableLiveData<Boolean> mConnection = new MutableLiveData<>();
 
-    private MutableLiveData<String> mRXData = new MutableLiveData<>();
+    MyService myService=new MyService();
+
+    // Flag to determine if the device is connected
+    private final MutableLiveData<Boolean> mIsServiceDiscover = new MutableLiveData<>();
+
+    // Connection states Connecting, Connected, Disconnecting, Disconnected etc.
+    private final MutableLiveData<String> mRXValue = new MutableLiveData<>();
+
+    // Flag to determine if the device is connected
+    private final MutableLiveData<Boolean> mIsConnected = new MutableLiveData<>();
+
+    // Flag to determine if the device has required services
+    private final MutableLiveData<Boolean> mIsSupported = new MutableLiveData<>();
+
+    // Flag to determine if the device is ready
+    private final MutableLiveData<Void> mOnDeviceReady = new MutableLiveData<>();
 
     // Keeping this in here because it doesn't require a context
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -50,19 +75,30 @@ public class MainActivityViewModel extends AndroidViewModel {
     }
 
 
-    public LiveData<Boolean> getIsProgressBarUpdating(){
-        return mIsProgressBarUpdating;
+
+    public MainActivityViewModel() {
+
+        scoreTeamA = new MutableLiveData<>();
+        scoreTeamA.setValue("berjaya");
+
+
+        // can transform integer to string or use mutable live data directly
+        scoreStringTeamA = Transformations.map(scoreTeamA, String::valueOf);
+
+
+
+
+
+
+    }
+    public void addToTeamA(String amount) {
+        if (scoreTeamA.getValue() != null) {
+            scoreTeamA.setValue(scoreTeamA.getValue() + amount);
+        }
     }
 
-    public MainActivityViewModel(@NonNull final Application application) {
-        super(application);
-
-
-    }
-
-
-    public void setIsProgressBarUpdating(boolean isUpdating){
-        mIsProgressBarUpdating.postValue(isUpdating);
+    public LiveData<String> getScoreTeamA() {
+        return scoreStringTeamA;
     }
 
 
@@ -81,8 +117,11 @@ public class MainActivityViewModel extends AndroidViewModel {
 
 
     public LiveData<Boolean> getConnection(){
-        Log.i(TAG, "Get RX");
-        return mConnection;
+        Log.i(TAG, "Get Connection");
+
+  
+
+        return mIsConnected;
     }
 
 
@@ -94,9 +133,54 @@ public class MainActivityViewModel extends AndroidViewModel {
 
 
 
+    public LiveData<Boolean> getIsServiceDiscover() {
+        return mIsServiceDiscover;
+    }
 
 
 
+
+//    public void setIsConnected(){
+//
+//       if( myService.getConnectionService()==ACTION_GATT_CONNECTED){
+//           mIsConnected.postValue(true);
+//       }
+//      if(myService.getConnectionService()==ACTION_GATT_DISCONNECTED){
+//          mIsConnected.postValue(false);
+//      }
+//
+//    }
+
+//
+    public void setIsConnected(String text){
+
+       if( text==ACTION_GATT_CONNECTED){
+           mIsConnected.postValue(true);
+       }
+      if(text==ACTION_GATT_DISCONNECTED){
+          mIsConnected.postValue(false);
+      }
+
+    }
+
+
+    public void setIsServiceDiscover(int text){
+
+        if( text==0){
+            mIsServiceDiscover.postValue(true);
+        }
+
+
+    }
+
+    public void setRXValueViewModel(String text){
+
+        mRXValue.postValue(text);
+    }
+
+    public LiveData<String> getRXValueViewModel() {
+        return mRXValue;
+    }
 
 
 

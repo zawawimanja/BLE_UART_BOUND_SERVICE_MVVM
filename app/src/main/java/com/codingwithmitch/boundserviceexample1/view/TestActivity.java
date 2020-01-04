@@ -25,10 +25,7 @@ import android.widget.Toast;
 
 import com.codingwithmitch.boundserviceexample1.R;
 import com.codingwithmitch.boundserviceexample1.service.MyService;
-import com.codingwithmitch.boundserviceexample1.view.Main2Activity;
-import com.codingwithmitch.boundserviceexample1.view.Main3Activity;
-import com.codingwithmitch.boundserviceexample1.view.Main4Activity;
-import com.codingwithmitch.boundserviceexample1.view.MainActivity;
+
 import com.codingwithmitch.boundserviceexample1.viewmodel.MainActivityViewModel;
 
 public class TestActivity extends AppCompatActivity {
@@ -195,14 +192,14 @@ public class TestActivity extends AppCompatActivity {
         startActivity(dash);
 
     }
-
-    public void go4(View view){
-
-
-        Intent dash = new Intent(getApplicationContext(), Main4Activity.class);
-        startActivity(dash);
-
-    }
+//
+//    public void go4(View view){
+//
+//
+//        Intent dash = new Intent(getApplicationContext(), Main4Activity.class);
+//        startActivity(dash);
+//
+//    }
 
 
 

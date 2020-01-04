@@ -63,6 +63,7 @@ public class MyService extends Service {
     public static final UUID TX_CHAR_UUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
     BluetoothGattCharacteristic characteristic;
     String text;
+    boolean mServiceDiscovered=false;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -87,55 +88,7 @@ public class MyService extends Service {
 
     }
 
-    public Boolean getIsPaused(){
-        return mIsPaused;
-    }
 
-    public Boolean getIsConnectedService() {
-        return mConnection;
-    }
-
-    public int getProgress(){
-        return mProgress;
-    }
-
-    public int getMaxValue(){
-        return mMaxValue;
-    }
-
-    public void pausePretendLongRunningTask(){
-        mIsPaused = true;
-    }
-
-    public void unPausePretendLongRunningTask(){
-
-        mIsPaused = false;
-        Log.i(TAG, "mIsPaused"+mIsPaused);
-        startPretendLongRunningTask();
-    }
-
-    public void startPretendLongRunningTask(){
-        final Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                if(mProgress >= mMaxValue || mIsPaused){
-                    Log.i(TAG, "run: removing callbacks");
-                    mHandler.removeCallbacks(this); // remove callbacks from runnable
-                    pausePretendLongRunningTask();
-                }
-                else{
-                    Log.i(TAG, "run: progress: " + mProgress);
-                    mProgress += 100; // increment the progress
-                    mHandler.postDelayed(this, 100); // continue incrementing
-                }
-            }
-        };
-        mHandler.postDelayed(runnable, 100);
-    }
-
-    public void resetTask(){
-        mProgress = 0;
-    }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
@@ -153,7 +106,8 @@ public class MyService extends Service {
     //////////////////////////////////////////////////////////////////
     //starting service ble
 
-     String intentAction;
+    String intentAction;
+    int statusServiceDiscover;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -179,25 +133,31 @@ public class MyService extends Service {
                 mConnection=false;
                 Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
+
             }
         }
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-            	Log.w(TAG, "mBluetoothGatt = " + mBluetoothGatt );
-
+                statusServiceDiscover=status;
+                Log.i(TAG, "mBluetoothGatt = " + mBluetoothGatt );
+                // intentAction=ACTION_GATT_SERVICES_DISCOVERED;
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
-                Log.w(TAG, "onServicesDiscovered received: " + status);
+                Log.i(TAG, "onServicesDiscovered received: " + status);
             }
         }
+
+
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+
+
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             }
         }
@@ -211,10 +171,28 @@ public class MyService extends Service {
 
 
     //pass rx value
+    public int getServiceDiscover(){
+
+        Log.i(TAG,"valueintent"+statusServiceDiscover);
+        return statusServiceDiscover;
+
+    }
+
+
+    //pass rx value
     public String getConnectionService(){
 
         Log.i(TAG,"valueintent"+intentAction);
         return intentAction;
+
+    }
+
+
+    //pass rx value
+    public String getName(){
+
+
+        return "awi";
 
     }
 
@@ -231,16 +209,17 @@ public class MyService extends Service {
         // This is handling for the notification on TX Character of NUS service
         if (TX_CHAR_UUID.equals(characteristic.getUuid())) {
 
-           // Log.d(TAG, String.format("Received TX: %d",characteristic.getValue() ));
+            // Log.d(TAG, String.format("Received TX: %d",characteristic.getValue() ));
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
 
+
             try {
-                 text = new String(characteristic.getValue(), "UTF-8");
 
-                Log.i(TAG,text);
+
+                text = new String(characteristic.getValue(), "UTF-8");
+
+                Log.i(TAG,"RXService"+text);
                 getRXValue();
-
-
 
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
@@ -253,13 +232,32 @@ public class MyService extends Service {
     }
 
 
+
+    //pass rx value
+    public String getDataAvalaible(){
+
+        Log.i(TAG,"valueintent"+intentAction);
+        return intentAction;
+
+    }
+
+
+
     //pass rx value
     public String getRXValue(){
 
-        Log.i(TAG,text);
-        return text;
+        Log.i(TAG,"RXService1 "+text);
+        if(text!=null){
+            return text;
+        }else
+        {
+
+            return "awi";
+        }
+
 
     }
+
 
 
 
@@ -342,7 +340,7 @@ public class MyService extends Service {
             return;
         }
         mBluetoothGatt.disconnect();
-       // mBluetoothGatt.close();
+        // mBluetoothGatt.close();
     }
 
     /**
@@ -378,7 +376,7 @@ public class MyService extends Service {
      * Enables or disables notification on a give characteristic.
      *
 
-    */
+     */
 
     /**
      * Enable Notification on TX characteristic
@@ -394,13 +392,13 @@ public class MyService extends Service {
     		return;
     	}
     		*/
-    	BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
-    	if (RxService == null) {
+        BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
+        if (RxService == null) {
             showMessage("Rx service not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
-    	BluetoothGattCharacteristic TxChar = RxService.getCharacteristic(TX_CHAR_UUID);
+        BluetoothGattCharacteristic TxChar = RxService.getCharacteristic(TX_CHAR_UUID);
         if (TxChar == null) {
             showMessage("Tx charateristic not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
@@ -418,21 +416,21 @@ public class MyService extends Service {
     {
 
 
-    	BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
-    	showMessage("mBluetoothGatt null"+ mBluetoothGatt);
-    	if (RxService == null) {
+        BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
+        showMessage("mBluetoothGatt null"+ mBluetoothGatt);
+        if (RxService == null) {
             showMessage("Rx service not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
-    	BluetoothGattCharacteristic RxChar = RxService.getCharacteristic(RX_CHAR_UUID);
+        BluetoothGattCharacteristic RxChar = RxService.getCharacteristic(RX_CHAR_UUID);
         if (RxChar == null) {
             showMessage("Rx charateristic not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
         RxChar.setValue(value);
-    	boolean status = mBluetoothGatt.writeCharacteristic(RxChar);
+        boolean status = mBluetoothGatt.writeCharacteristic(RxChar);
 
         Log.d(TAG, "write TXchar - status=" + status);
     }
