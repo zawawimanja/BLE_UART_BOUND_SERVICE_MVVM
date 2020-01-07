@@ -25,6 +25,7 @@
 
 
         <Button
+            android:onClick="start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/toggle_updates"
@@ -92,21 +93,14 @@
                 android:layout_alignParentLeft="true"
                 android:layout_toLeftOf="@+id/sendButton"
                 android:ems="10"
-                android:enabled="false"
+                android:enabled="true"
                 android:fontFamily="1"
                 android:lines="1"
                 android:maxLength="20"
                 android:maxLines="1"
                 android:shadowRadius="1" />
 
-            <ListView
-                android:id="@+id/listMessage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/sendButton"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true" >
-            </ListView>
+
 
             <Button
                 android:id="@+id/sendButton"
@@ -114,7 +108,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
-                android:enabled="false"
+                android:enabled="true"
                 android:text="Send" />
 
         </RelativeLayout>

@@ -24,9 +24,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.codingwithmitch.boundserviceexample1.R;
+import com.codingwithmitch.boundserviceexample1.data.DataManager;
 import com.codingwithmitch.boundserviceexample1.service.MyService;
 
 import com.codingwithmitch.boundserviceexample1.viewmodel.MainActivityViewModel;
+import com.codingwithmitch.boundserviceexample1.viewmodel.MainViewModelFactory;
 
 public class TestActivity extends AppCompatActivity {
 
@@ -76,12 +78,18 @@ public class TestActivity extends AppCompatActivity {
         service_init();
         //toggleUpdates();
 
-        mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
+        mViewModel = createViewModel();
         setObservers();
 
 
 
     }
+
+    private MainActivityViewModel createViewModel() {
+        MainViewModelFactory factory = new MainViewModelFactory(DataManager.getInstance().getService());
+        return ViewModelProviders.of(this, factory).get(MainActivityViewModel.class);
+    }
+
 
 
 
