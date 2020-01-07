@@ -10,20 +10,15 @@ import android.util.Log;
 
 import com.codingwithmitch.boundserviceexample1.service.MyService;
 
+import java.io.UnsupportedEncodingException;
+
 import static com.codingwithmitch.boundserviceexample1.service.MyService.ACTION_GATT_CONNECTED;
 import static com.codingwithmitch.boundserviceexample1.service.MyService.ACTION_GATT_DISCONNECTED;
-import static com.codingwithmitch.boundserviceexample1.service.MyService.ACTION_GATT_SERVICES_DISCOVERED;
+import static com.codingwithmitch.boundserviceexample1.service.MyService.DEVICE_DOES_NOT_SUPPORT_UART;
 
 public class MainActivityViewModel extends ViewModel {
 
     private static final String TAG = "MainActivityViewModel";
-    private MutableLiveData<String> scoreTeamA;
-    private MutableLiveData<Integer> scoreTeamB;
-    private MutableLiveData<String> gameTitle;
-    private MutableLiveData<String> teamAName;
-    private MutableLiveData<String> teamBName;
-    private LiveData<String> scoreStringTeamA;
-    private LiveData<String> scoreStringTeamB;
 
 
     private MutableLiveData<MyService.MyBinder> mBinder = new MutableLiveData<>();
@@ -32,17 +27,18 @@ public class MainActivityViewModel extends ViewModel {
 
     MyService myService=new MyService();
 
-    // Connection states Connecting, Connected, Disconnecting, Disconnected etc.
+
+
+    private final MutableLiveData<Boolean> mDeviceNotSupport = new MutableLiveData<Boolean>();
+
+    private final MutableLiveData<byte[]> mTXValue = new MutableLiveData<byte[]>();
+
+
     private final MutableLiveData<String> mRXValue = new MutableLiveData<>();
 
     // Flag to determine if the device is connected
     private final MutableLiveData<Boolean> mIsConnected = new MutableLiveData<>();
 
-    // Flag to determine if the device has required services
-    private final MutableLiveData<Boolean> mIsSupported = new MutableLiveData<>();
-
-    // Flag to determine if the device is ready
-    private final MutableLiveData<Void> mOnDeviceReady = new MutableLiveData<>();
 
     // Keeping this in here because it doesn't require a context
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -61,100 +57,118 @@ public class MainActivityViewModel extends ViewModel {
         }
     };
 
-
-    public ServiceConnection getServiceConnection(){
-        return serviceConnection;
+    public MainActivityViewModel(MyService myService) {
     }
+
 
     public LiveData<MyService.MyBinder> getBinder(){
         return mBinder;
     }
 
-
-
-    public MainActivityViewModel() {
-
-        scoreTeamA = new MutableLiveData<>();
-      //  scoreTeamA.setValue("awi");
-
-    }
-    public void addToTeamA(String amount) {
-
-        scoreTeamA.postValue(amount);
+    public ServiceConnection getServiceConnection(){
+        return serviceConnection;
     }
 
-    public LiveData<String> getScoreTeamA() {
-        return scoreTeamA;
-    }
-
-
-
-    public LiveData<Boolean> getRX(){
-        Log.i(TAG, "Get RX");
-        return mRX;
-    }
-
-
-    public void setRX(boolean text){
-        Log.i(TAG, "CheckConnection");
-
-        mRX.postValue(text);
-    }
-
-
-    public LiveData<Boolean> getConnection(){
-        Log.i(TAG, "Get Connection");
-
-  
-
-        return mConnection;
-    }
-
-
-    public void setConnection(boolean text){
-        Log.i(TAG, "CheckConnection");
-
-        mConnection.postValue(text);
-    }
-
-
-
-    public LiveData<Boolean> isConnected() {
+    public LiveData<Boolean> getServiceDiscover() {
         return mIsConnected;
     }
 
-
-
-  public void setIsConnected(){
-
-       if( myService.getConnectionService()==ACTION_GATT_CONNECTED){
-           mIsConnected.postValue(true);
-       }
-      if( myService.getConnectionService()==ACTION_GATT_DISCONNECTED){
-          mIsConnected.postValue(false);
-      }
-
-  }
-
-
-    public void setIsServiceDiscover(){
-
-        if( myService.getConnectionService()==ACTION_GATT_SERVICES_DISCOVERED){
-            mIsConnected.postValue(true);
-        }
-
-
-    }
-
-    public void setRXValueViewModel(String text){
-
-        mRXValue.postValue(text);
+    public LiveData<Boolean> getConnected() {
+        return mIsConnected;
     }
 
     public LiveData<String> getRXValueViewModel() {
         return mRXValue;
     }
 
+    public LiveData<byte[]> getTXValueViewModel() {
+        return mTXValue;
+    }
+
+    public LiveData<Boolean> getDeviceNotSupport() {
+        return mDeviceNotSupport;
+    }
+
+    public void setDeviceSupported(String text){
+
+
+//            if(myService.getDeviceNotSupport()=="Not Support"){
+//                mDeviceNotSupport.postValue(true);
+//            }
+
+        if(text==DEVICE_DOES_NOT_SUPPORT_UART){
+            mDeviceNotSupport.postValue(true);
+        }
+
+    }
+
+
+    public void setIsConnected(){
+
+        if(myService.getConnectionService()!=null){
+
+            if(myService.getConnectionService()==ACTION_GATT_CONNECTED){
+                mIsConnected.postValue(true);
+            }
+            if(myService.getConnectionService()==ACTION_GATT_DISCONNECTED){
+                mIsConnected.postValue(false);
+            }
+
+        }
+
+    }
+
+
+    public void setIsServiceDiscover(){
+
+                if( myService.getServiceDiscover()==0){
+                 mIsConnected.postValue(true);
+        }
+
+
+    }
+
+
+
+
+
+
+//    public void setRXValueViewModel(){
+//
+//        if(myService.getRXValue()!=null){
+//
+//            mRXValue.postValue(myService.getRXValue());
+//        }
+//
+//    }
+
+
+
+
+    public void setRXValueViewModel(String text){
+
+        mRXValue.postValue(text);
+    }
+
+
+
+
+    public void setTXValueViewModel(String text){
+
+        byte[] value;
+        try {
+            //send data to service
+            value = text.getBytes("UTF-8");
+
+            mTXValue.postValue(value);
+
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+
+    }
 
 
 

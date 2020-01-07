@@ -78,7 +78,7 @@ public class MyService extends Service {
         return mBinder;
     }
 
-
+    private static MyService instance;
     public class MyBinder extends Binder{
 
         public MyService getService(){
@@ -87,13 +87,11 @@ public class MyService extends Service {
 
     }
 
-
-    public int getProgress(){
-        return mProgress;
-    }
-
-    public int getMaxValue(){
-        return mMaxValue;
+    public static MyService getInstance() {
+        if (instance == null) {
+            instance = new MyService();
+        }
+        return instance;
     }
 
     @Override
@@ -113,6 +111,7 @@ public class MyService extends Service {
     //starting service ble
 
      String intentAction;
+    int serviceStatus;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -125,7 +124,7 @@ public class MyService extends Service {
                 intentAction = ACTION_GATT_CONNECTED;
                 getConnectionService();
                 mConnectionState = STATE_CONNECTED;
-                broadcastUpdate(intentAction);
+
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" +
@@ -137,7 +136,7 @@ public class MyService extends Service {
                 mConnectionState = STATE_DISCONNECTED;
                 mConnection=false;
                 Log.i(TAG, "Disconnected from GATT server.");
-                broadcastUpdate(intentAction);
+
             }
         }
 
@@ -145,8 +144,9 @@ public class MyService extends Service {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
             	Log.i(TAG, "mBluetoothGatt = " + mBluetoothGatt );
+            	serviceStatus=status;
+                getServiceDiscover();
 
-                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
                 Log.i(TAG, "onServicesDiscovered received: " + status);
             }
@@ -179,20 +179,14 @@ public class MyService extends Service {
 
     }
 
-
     //pass rx value
-    public String getName(){
+    public int getServiceDiscover(){
 
-
-        return "awi";
+        Log.i(TAG,"servicestatus"+serviceStatus);
+        return serviceStatus;
 
     }
 
-
-    private void broadcastUpdate(final String action) {
-        final Intent intent = new Intent(action);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    }
 
     private void broadcastUpdate(final String action,
                                  final BluetoothGattCharacteristic characteristic) {
@@ -239,6 +233,21 @@ public class MyService extends Service {
 
     }
 
+
+    //pass rx value
+    public String getTXValue(){
+
+        Log.i(TAG,"RXService1 "+text);
+        if(text!=null){
+            return text;
+        }else
+        {
+
+            return "awi";
+        }
+
+
+    }
 
 
 
@@ -338,20 +347,6 @@ public class MyService extends Service {
         mBluetoothGatt = null;
     }
 
-    /**
-     * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
-     * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
-     * callback.
-     *
-     * @param characteristic The characteristic to read from.
-     */
-    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized");
-            return;
-        }
-        mBluetoothGatt.readCharacteristic(characteristic);
-    }
 
     /**
      * Enables or disables notification on a give characteristic.
@@ -364,6 +359,7 @@ public class MyService extends Service {
      *
      * @return
      */
+    String mDeviceNotSupport;
     public void enableTXNotification()
     {
     	/*
@@ -376,13 +372,15 @@ public class MyService extends Service {
     	BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
     	if (RxService == null) {
             showMessage("Rx service not found!");
-            broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
+            mDeviceNotSupport=DEVICE_DOES_NOT_SUPPORT_UART;
+         //   broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
     	BluetoothGattCharacteristic TxChar = RxService.getCharacteristic(TX_CHAR_UUID);
         if (TxChar == null) {
             showMessage("Tx charateristic not found!");
-            broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
+            mDeviceNotSupport=DEVICE_DOES_NOT_SUPPORT_UART;
+           // broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
         mBluetoothGatt.setCharacteristicNotification(TxChar,true);
@@ -390,6 +388,15 @@ public class MyService extends Service {
         BluetoothGattDescriptor descriptor = TxChar.getDescriptor(CCCD);
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         mBluetoothGatt.writeDescriptor(descriptor);
+
+    }
+
+
+
+    public String getDeviceNotSupport(){
+
+        Log.i(TAG,"MDeviceNotSupport "+mDeviceNotSupport);
+        return mDeviceNotSupport;
 
     }
 
@@ -401,13 +408,13 @@ public class MyService extends Service {
     	showMessage("mBluetoothGatt null"+ mBluetoothGatt);
     	if (RxService == null) {
             showMessage("Rx service not found!");
-            broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
+         //   broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
     	BluetoothGattCharacteristic RxChar = RxService.getCharacteristic(RX_CHAR_UUID);
         if (RxChar == null) {
             showMessage("Rx charateristic not found!");
-            broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
+          //  broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
         RxChar.setValue(value);
@@ -418,17 +425,6 @@ public class MyService extends Service {
 
     private void showMessage(String msg) {
         Log.e(TAG, msg);
-    }
-    /**
-     * Retrieves a list of supported GATT services on the connected device. This should be
-     * invoked only after {@code BluetoothGatt#discoverServices()} completes successfully.
-     *
-     * @return A {@code List} of supported services.
-     */
-    public List<BluetoothGattService> getSupportedGattServices() {
-        if (mBluetoothGatt == null) return null;
-
-        return mBluetoothGatt.getServices();
     }
 
 

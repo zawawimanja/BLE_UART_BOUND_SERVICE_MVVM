@@ -29,9 +29,11 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.codingwithmitch.boundserviceexample1.data.DataManager;
 import com.codingwithmitch.boundserviceexample1.service.MyService;
 import com.codingwithmitch.boundserviceexample1.R;
 import com.codingwithmitch.boundserviceexample1.viewmodel.MainActivityViewModel;
+import com.codingwithmitch.boundserviceexample1.viewmodel.MainViewModelFactory;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -88,10 +90,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
-        messageListView = (ListView) findViewById(R.id.listMessage);
-        listAdapter = new ArrayAdapter<String>(this, R.layout.message_detail);
-        messageListView.setAdapter(listAdapter);
-        messageListView.setDivider(null);
+
         btnConnectDisconnect=(Button) findViewById(R.id.btn_select);
         btnSend=(Button) findViewById(R.id.sendButton);
         edtMessage = (EditText) findViewById(R.id.sendText);
@@ -121,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
                         {
                             mService.disconnect();
 
+
                         }
                     }
 
@@ -128,75 +128,52 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        // Handle Send button
-//        btnSend.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                EditText editText = (EditText) findViewById(R.id.sendText);
-//                String message = editText.getText().toString();
-//                byte[] value;
-//                try {
-//                    //send data to service
-//                    value = message.getBytes("UTF-8");
-//                    mService.writeRXCharacteristic(value);
-//                    //Update the log with time stamp
-//                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-//                    listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
-//                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-//                    edtMessage.setText("");
-//                } catch (UnsupportedEncodingException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
+
+
+
+        mViewModel = createViewModel();;
+        setObservers();
+
+
+//        //automatic get
+//        runOnUiThread(new Runnable() {
+//            public void run() {
+//                if(mService!=null){
+//
+//                   // mViewModel.setIsConnected(mService.getConnectionService());
+//                    mViewModel.setIsServiceDiscover(mService.getServiceDiscover());
+//                    if(mService.getRXValue()!=null){
+//                        mViewModel.setRXValueViewModel(mService.getRXValue());
+//                    }
+//
 //                }
+//
 //
 //            }
 //        });
 
+    }
 
-        mViewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
-        setObservers();
+    public void start(View view){
+        mViewModel.setIsConnected();
+       mViewModel.setIsServiceDiscover();
+        mViewModel.setRXValueViewModel(mService.getRXValue());
+        mViewModel.setTXValueViewModel(mService.getTXValue());
 
-//using handler not work real time for main but for other activites work for real time
-//
-//        Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            public void run() {
-//                if(mService.getRXValue()!=null){
-//                    mViewModel.setRXValueViewModel(mService.getRXValue());
-//                }
-//            }
-//        }, 1000);
-//
-//
-//        //
-//
-//        new CountDownTimer(5000, 100) {
-//            public void onTick(long millisUntilFinished) {
-//
-//            }
-//
-//            public void onFinish() {
-//
-//            }
-//        }.start();
 
-//        if(mService.getRXValue()!=null){
-//        //    mViewModel.addToTeamA(mService.getRXValue());
-//        }else{
-//
-//        }
+    }
 
-        mService.getName();
+    public void go3(View view){
+
+        mViewModel.setDeviceSupported(mService.getDeviceNotSupport());
+
+    }
 
 
 
-
-
-        mButton.setOnClickListener(view -> {
-
-        });
-
-
+    private MainActivityViewModel createViewModel() {
+        MainViewModelFactory factory = new MainViewModelFactory(DataManager.getInstance().getService());
+        return ViewModelProviders.of(this, factory).get(MainActivityViewModel.class);
     }
 
     //UART service connected/disconnected
@@ -218,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-    int count=0;
+
 
     private void setObservers(){
         mViewModel.getBinder().observe(this, new Observer<MyService.MyBinder>() {
@@ -235,73 +212,18 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        mViewModel.getRX().observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(@Nullable final Boolean aBoolean) {
-                final Handler handler = new Handler();
-                final Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        if(mViewModel.getRX().getValue()){
-                            if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
 
-                                if(mService.getRXValue()==null){
-                                    mViewModel.setRX(false);
-                                }
-
-                                String progress = mService.getRXValue();
-                                if(progress.equals("X")){
-                                    Log.i(TAG, "ProgressRX"+progress);
-                                    mTextView1.setText("a");
-                                }else{
-                                    mTextView1.setText(" ");
-                                }
-                                mTextView1.setText(progress);
-
-                            }
-                            handler.postDelayed(this, 100);
-                        }
-                        else{
-                            handler.removeCallbacks(this);
-                        }
-                    }
-                };
-
-                // control what the button shows
-                if(aBoolean){
-                    mButton.setText("Pause");
-                    handler.postDelayed(runnable, 100);
-
-                }
-                else{
-                    if(mService.getProgress() == mService.getMaxValue()){
-                        mButton.setText("Restart");
-                    }
-                    else{
-                        mButton.setText("Start");
-                    }
-                }
-            }
-        });
 
         mViewModel.getRXValueViewModel().observe(this, new Observer<String>() {
             @Override
-            public void onChanged(@Nullable final String aBoolean) {
+            public void onChanged(@Nullable final String text) {
                 runOnUiThread(new Runnable() {
                     public void run() {
                         if(mViewModel.getRXValueViewModel()!=null){
                             if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
 
 
-
-                                String progress = mService.getRXValue();
-                                if(progress.equals("X")){
-                                    Log.i(TAG, "ProgressRX"+progress);
-                                    mTextView1.setText("a");
-                                }else{
-                                    mTextView1.setText(" ");
-                                }
-                                mTextView2.setText(aBoolean);
+                                mTextView2.setText(text);
 
                             }
 
@@ -310,96 +232,100 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-
-
-
-
             }
         });
 
 
 
 
-//        mViewModel.getConnection().observe(this, new Observer<Boolean>() {
-//            @Override
-//            public void onChanged(@Nullable final Boolean aBoolean) {
-//                final Handler handler = new Handler();
-//                final Runnable runnable = new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if(mViewModel.getConnection().getValue()){
-//                            if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
-//
-//                                if(mService.getConnectionService()==null){
-//                                    mViewModel.setConnection(false);
-//                                }
-//
-//                                String progress = mService.getConnectionService();
-//                                Log.i(TAG, "ConnectionState"+progress);
-//
-//
-//                                showMessage(progress);
-//                                count++;
-//
-//                            }
-//                            handler.postDelayed(this, 100);
-//                        }
-//                        else{
-//
-//
-//                                handler.removeCallbacks(this);
-//
-//                        }
-//                    }
-//                };
-//
-//               //  control what the button shows
-//                if(aBoolean){
-//                //    mButton.setText("Pause");
-//
-//                    edtMessage.setEnabled(true);
-//                    btnSend.setEnabled(true);
-//                    ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - ready");
-//                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-//                    listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
-//                    btnConnectDisconnect.setText("Disconnect");
-//                    edtMessage.setEnabled(true);
-//                    btnSend.setEnabled(true);
-//
-//                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-//                    mState = UART_PROFILE_CONNECTED;
-//
-//                    mService.enableTXNotification();
-//
-//                    handler.postDelayed(runnable, 100);
-//
-//                }
-//                else{
-//
-//                }
-//            }
-//        });
 
 
-   //     mViewModel.getScoreTeamA().observe(this, score -> mTextView2.setText(score));
 
-
-        mViewModel.getScoreTeamA().observe(this, new Observer<String>() {
+        mViewModel.getConnected().observe(this, new Observer<Boolean>() {
             @Override
-            public void onChanged(@Nullable String s) {
-                mTextView1.setText(s);
+            public void onChanged(@Nullable final Boolean aBoolean) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        if(mViewModel.getConnected()!=null){
+                            if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
+
+
+
+
+
+                            }
+                        }
+                    }
+                });
+
+                if(aBoolean==true){
+                    btnConnectDisconnect.setText("Disconnect B");
+                    Log.i(TAG, "Disconnect");
+                }
+                else{
+                    btnConnectDisconnect.setText("connect");
+                    mService.close();
+                    Log.i(TAG, "connect");
+                }
             }
         });
+
+
+
+        mViewModel.getServiceDiscover().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable final Boolean aBoolean) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        if(mViewModel.getServiceDiscover()!=null){
+                            if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
+
+                              mService.enableTXNotification();
+
+
+
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        mViewModel.getDeviceNotSupport().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable final Boolean aBoolean) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        if(mViewModel.getDeviceNotSupport()!=null){
+                            if(mViewModel.getBinder().getValue() != null){ // meaning the service is bound
+
+
+
+                            }
+                        }
+                    }
+                });
+
+                if(aBoolean){
+                    Toast.makeText(MainActivity.this, "Not Support", Toast.LENGTH_SHORT).show();
+                    mService.disconnect();
+                    Log.i(TAG, "Disconnect");
+                }
+                else{
+                    Toast.makeText(MainActivity.this, "Support", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "connect");
+                }
+            }
+        });
+
+
+
 
 
     }
 
 
     public void go1(View view){
-
-        //hardcode success sent when button click & not real time
-       //   mViewModel.addToTeamA("t");
-
 
     }
 
@@ -437,102 +363,10 @@ public class MainActivity extends AppCompatActivity {
         Intent bindIntent = new Intent(this, MyService.class);
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
-     LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, makeGattUpdateIntentFilter());
-    }
+      }
 
     ////////////////////// all 3 method for onresume
 
-    private static IntentFilter makeGattUpdateIntentFilter() {
-        final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ACTION_GATT_CONNECTED);
-        intentFilter.addAction(MyService.ACTION_GATT_DISCONNECTED);
-        intentFilter.addAction(MyService.ACTION_GATT_SERVICES_DISCOVERED);
-        intentFilter.addAction(MyService.ACTION_DATA_AVAILABLE);
-        intentFilter.addAction(MyService.DEVICE_DOES_NOT_SUPPORT_UART);
-        return intentFilter;
-    }
-
-
-    private final BroadcastReceiver UARTStatusChangeReceiver = new BroadcastReceiver() {
-
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            final Intent mIntent = intent;
-            //*********************//
-            if (action.equals(ACTION_GATT_CONNECTED)) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                        Log.i(TAG, "UART_CONNECT_MSG1");
-                        btnConnectDisconnect.setText("Disconnect");
-                        edtMessage.setEnabled(true);
-                        btnSend.setEnabled(true);
-                        ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - ready");
-                        listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
-                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-                        mState = UART_PROFILE_CONNECTED;
-                    }
-                });
-            }
-
-            //*********************//
-            if (action.equals(MyService.ACTION_GATT_DISCONNECTED)) {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                        Log.i(TAG, "UART_DISCONNECT_MSG1");
-                        btnConnectDisconnect.setText("Connect");
-                        edtMessage.setEnabled(false);
-                        btnSend.setEnabled(false);
-                        ((TextView) findViewById(R.id.deviceName)).setText("Not Connected");
-                        listAdapter.add("["+currentDateTimeString+"] Disconnected to: "+ mDevice.getName());
-                        mState = UART_PROFILE_DISCONNECTED;
-                        mService.close();
-                        //setUiState();
-
-                    }
-                });
-            }
-
-
-            //*********************//
-            if (action.equals(MyService.ACTION_GATT_SERVICES_DISCOVERED)) {
-                mService.enableTXNotification();
-            }
-
-
-            //*********************//rx
-            if (action.equals(MyService.ACTION_DATA_AVAILABLE)) {
-
-                final byte[] txValue = intent.getByteArrayExtra(MyService.EXTRA_DATA);
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        try {
-                            String text = new String(txValue, "UTF-8");
-                            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                            listAdapter.add("["+currentDateTimeString+"] RX: "+text);
-                            //reason realtime updated
-                            mViewModel.setRXValueViewModel(mService.getRXValue());
-                            messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-
-                        } catch (Exception e) {
-                            Log.e(TAG, e.toString());
-                        }
-                    }
-                });
-            }
-
-
-            //*********************//
-            if (action.equals(MyService.DEVICE_DOES_NOT_SUPPORT_UART)){
-                showMessage("Device doesn't support UART. Disconnecting");
-                mService.disconnect();
-            }
-
-
-        }
-    };
 
     private void showMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
