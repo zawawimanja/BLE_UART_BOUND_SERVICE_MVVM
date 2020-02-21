@@ -1,4 +1,5 @@
 # Fork project from Mitch Tabian
+#FAIL DONT WORK CANNOT CONNECT
 Try to demonstrate connection BLE and binding the service using MVVM.
 
 # Bound-Services-with-MVVM
